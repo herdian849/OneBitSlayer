@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Adventure Slayer - Ultimate Edition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div id="startOverlay" onclick="initGameAudio()">
+    <h1>ADVENTURE SLAYER</h1>
+    <p>Dev: Raega Daerren.H (PBTGM1)</p>
+    <div class="start-box">
+        <p>[ KLIK / TAP DI MANA SAJA UNTUK MASUK ]</p>
+    </div>
+</div>
+
+<!-- Audio ditaruh di sini, dipanggil lewat JS -->
+<audio id="menuBgm" loop preload="auto">
+    <source src="{{ url_for('static', filename='audio/menu.mp3') }}" type="audio/mpeg">
+</audio>
+<audio id="gameBgm" loop preload="auto">
+    <source src="{{ url_for('static', filename='audio/soundtrack.mp3') }}" type="audio/mpeg">
+</audio>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="header-title">
+    <h1>ADVENTURE SLAYER</h1>
+    <small>Developer: Raega Daerren.H (PBTGM1) — v2.0</small>
+</div>
+
+<div class="app-wrap">
+<div class="game-shell">
+
+    <div class="game-container">
+        <!-- Main Menu Modal -->
+        <div id="mainMenuScreen" class="overlay-screen">
+            <div class="main-menu-card">
+                <h1 class="animated-title">ADVENTURE SLAYER</h1>
+                <p style="font-size: 10px; color: #aaa; margin: 0;">-- EDITION 2026 --</p>
+                <div style="font-size: 11px; color: #888; text-align: center; margin: 4px 0;">Petualangan Fantasi Pixel RPG</div>
+                <div class="highscore-line">🏆 Rekor Terbaik: <span id="highscoreLabel">0</span></div>
+                <div class="difficulty-row">
+                    <button class="diff-btn selected" data-diff="easy" onclick="selectDifficulty('easy')">Santai</button>
+                    <button class="diff-btn" data-diff="normal" onclick="selectDifficulty('normal')">Normal</button>
+                    <button class="diff-btn" data-diff="hard" onclick="selectDifficulty('hard')">Sulit</button>
+                </div>
+                <button class="play-btn" onclick="onPlayClicked()">▶ PLAY</button>
+                <small style="font-size: 9px; color: #666;">Dev: Raega Daerren.H (PBTGM1)</small>
+            </div>
+        </div>
+
+        <!-- Story Modal -->
+        <div id="storyModal" class="overlay-screen hidden">
+            <div class="modal-card">
+                <h2 class="modal-title animated-title" id="modalTitle">PROLOG KISAH</h2>
+                <p class="modal-desc" id="modalText">
+                    Kegelapan menyelimuti desa setelah Raja Monster Sihir membangkitkan kutukan kuno. Kamu adalah ksatria terpilih yang dikirim untuk menembus hutan berbahaya.
+                    <br><br>
+                    Jelajahi hutan, kumpulkan koin, beli perlengkapan, dan kalahkan Raja Monster!
+                </p>
+                <div id="shopContainer" class="shop-options hidden">
+                    <button class="shop-btn" onclick="buyItem('heal')"><span>🧪 Obat Herbal (+40 HP)</span><span>20 Koin</span></button>
+                    <button class="shop-btn" onclick="buyItem('mana')"><span>💧 Elixir Mana (+20 MP)</span><span>15 Koin</span></button>
+                    <button class="shop-btn" onclick="buyItem('antidote')"><span>🌿 Penawar Racun</span><span>10 Koin</span></button>
+                    <button class="shop-btn" onclick="buyItem('shield')"><span>🛡️ Perisai (blokir 1 hit)</span><span>25 Koin</span></button>
+                </div>
+                <div id="levelUpContainer" class="shop-options hidden">
+                    <button class="shop-btn" onclick="upgradeStat('hp')"><span>+20 Max HP</span><span></span></button>
+                    <button class="shop-btn" onclick="upgradeStat('mp')"><span>+10 Max MP</span><span></span></button>
+                    <button class="shop-btn" onclick="upgradeStat('atk')"><span>+8 Attack Power</span><span></span></button>
+                    <button class="shop-btn" onclick="upgradeStat('crit')"><span>+5% Peluang Kritikal</span><span></span></button>
+                </div>
+                <button class="btn-modal" id="modalBtn" onclick="closeModal()">MULAI PETUALANGAN</button>
+            </div>
+        </div>
+
+        <div class="top-toolbar">
+            <button class="icon-btn" onclick="togglePause()" id="pauseBtn">⏸ Jeda</button>
+            <span style="font-size:10px; color:#888;">Adventure Slayer</span>
+            <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+        </div>
+
+        <div class="hud-panel">
+            <div class="hud-item">
+                <span class="hud-label">Lvl <span id="levelText">1</span> | <span id="statusText" style="color:lime;">Normal</span></span>
+                <span class="hud-value" id="scoreText" style="color: var(--accent-yellow);">Skor: 0</span>
+                <span style="font-size: 10px; color: var(--accent-red); font-weight: bold;" id="timerText">⏱️ 500s</span>
+                <div class="stat-bar" style="margin-top:2px;"><div class="exp-fill" id="expBarFill"></div></div>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">HP Ksatria</span>
+                <span class="hud-value" id="hpText" style="color: var(--accent-red);">100/100</span>
+                <div class="stat-bar"><div class="hp-fill" id="hpBarFill"></div></div>
+                <span style="font-size: 9px; color: var(--accent-yellow); margin-top:2px;" id="coinText">💰 0 Koin</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">MP / Elemen</span>
+                <span class="hud-value" id="mpText" style="color: var(--accent-blue);">30/30</span>
+                <div class="stat-bar"><div class="mp-fill" id="mpBarFill"></div></div>
+                <span style="font-size: 9px; color: #999;" id="shieldText"></span>
+            </div>
+        </div>
+
+        <div class="boss-hp-wrap" id="bossHpWrap">
+            <div class="boss-hp-label">👹 <span id="bossNameLabel">Raja Monster Sihir</span></div>
+            <div class="boss-hp-bar"><div class="boss-hp-fill" id="bossHpFill"></div></div>
+        </div>
+
+        <div class="canvas-wrap">
+            <canvas id="gameCanvas" width="350" height="350"></canvas>
+        </div>
+
+        <div id="storyBox"><b>[ALUR CERITA]</b><br><span id="storyText">Bersiaplah! Waktu terus berjalan sebelum Raja Monster bangkit!</span></div>
+
+        <div id="gameLog" class="mobile-only"></div>
+
+        <div class="controls-area">
+            <div class="dpad">
+                <div></div>
+                <div class="btn-dpad" onclick="handleTurn(0, -1)">▲</div>
+                <div></div>
+                <div class="btn-dpad" onclick="handleTurn(-1, 0)">◄</div>
+                <div class="btn-dpad" onclick="handleTurn(0, 1)">▼</div>
+                <div class="btn-dpad" onclick="handleTurn(1, 0)">►</div>
+            </div>
+
+            <div class="skill-panel">
+                <button class="btn-skill" id="skillElementBtn" onclick="useElementSkill()">🔥 Skill Elemen (10 MP)</button>
+                <button class="btn-skill" id="skillDashBtn" onclick="useDashSkill()" style="background:#4a3b2b; color:var(--accent-yellow);">⚡ Dash Melompat (5 MP)</button>
+            </div>
+        </div>
+        <p class="mobile-hint desktop-only">Gunakan WASD / Panah untuk bergerak, Spasi untuk skill elemen, Shift untuk dash.</p>
+        <p class="mobile-hint mobile-only">Ketuk D-Pad untuk bergerak, atau geser (swipe) di atas layar permainan.</p>
+    </div>
+
+    <!-- Panel Samping Khusus Laptop/Desktop -->
+    <div class="side-panel desktop-only">
+        <div class="side-title">📜 LOG PERTEMPURAN</div>
+        <div id="gameLogDesktop"></div>
+        <div class="side-title">🎒 INVENTORI</div>
+        <div class="inv-list">
+            <div class="inv-row"><span>🧪 Obat Herbal</span><span id="invHeal">0</span></div>
+            <div class="inv-row"><span>💧 Elixir Mana</span><span id="invMana">0</span></div>
+            <div class="inv-row"><span>🛡️ Perisai</span><span id="invShield">0</span></div>
+        </div>
+        <div class="side-title">ℹ️ TIPS</div>
+        <p style="font-size:10px; color:#999; line-height:1.5;">
+            Setiap monster hanya membalas serangan SATU kali per giliran. Pukul mereka sampai tumbang sebelum HP kamu habis!
+        </p>
+    </div>
+
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adventure Slayer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+</head>
+<body>
+    <div class="splash-container">
+        <div class="background-scene">
+            <div class="sky"></div>
+            <div class="clouds">
+                <div class="cloud c1"></div>
+                <div class="cloud c2"></div>
+                <div class="cloud c3"></div>
+            </div>
+            <div class="mountains"></div>
+            <div class="trees"></div>
+            <div class="sun"></div>
+        </div>
+
+        <div class="content">
+            <h1 class="title">⚔ Adventure <span>Slayer</span></h1>
+            <p class="subtitle">Sebuah Petualangan Ksatria</p>
+            <a href="{{ url_for('game') }}" class="play-btn">▶ Mulai Permainan</a>
+            <p class="credit">Raega Daerren.H · XI RPL 3</p>
+        </div>
+    </div>
+
+    <audio id="bgm" loop autoplay>
+        <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
+</body>
+</html>
